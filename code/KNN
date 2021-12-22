@@ -1,0 +1,44 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import GridSearchCV
+
+import warnings
+warnings.filterwarnings('ignore')
+
+
+data = pd.read_excel(r'.\my_data\2020-06-28_china_province_data.xlsx')
+
+x = data.drop(columns = ['province','dangerous level','lastUpdateTime'])
+y = data['dangerous level']
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size = 0.2,random_state=4)
+
+leaf_size = list(range(1,50))
+n_neighbors = list(range(1,30))
+p=[1,2]
+param_grid = {
+    'leaf_size':leaf_size,
+    'n_neighbors':n_neighbors,
+    'p':p
+}
+#Create a new KNN object
+knn_2 = KNeighborsClassifier()
+
+#Cross validation
+clf = GridSearchCV(knn_2, param_grid= param_grid, cv=10)
+clf.fit(x_train,y_train)
+
+#Print The value of best Hyperparameters
+print('Best leaf_size:', clf.best_estimator_.get_params()['leaf_size'])
+print('Best p:', clf.best_estimator_.get_params()['p'])
+print('Best n_neighbors:', clf.best_estimator_.get_params()['n_neighbors'])
+
+#predict
+y_pred = clf.predict(x_test)
+print(classification_report(y_test,y_pred))
+print(roc_auc_score(y_test,y_pred))
